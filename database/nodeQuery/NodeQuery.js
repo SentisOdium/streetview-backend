@@ -1,7 +1,8 @@
 import pool from "../../config/db.js";
 
 export async function getNodeById(nodeId) {
-    const [rows] = await pool.query(`
+    try {
+        const [rows] = await pool.query(`
         
         SELECT 
             n.id, 
@@ -20,7 +21,7 @@ export async function getNodeById(nodeId) {
         
             LEFT JOIN node_details nd 
                 ON n.id = nd.node_id
-            LEFT JO IN node_coordinates nc 
+            LEFT JOIN node_coordinates nc 
                 ON nd.id = nc.node_details_id
             LEFT JOIN node_img ni 
                 ON nd.id = ni.node_details_id
@@ -30,4 +31,9 @@ export async function getNodeById(nodeId) {
         WHERE n.id = ?
 
         `, [nodeId]);
+        return rows[0];
+    } catch (error) {
+          console.error("Error in getNodeById:", error);
+        throw error;
+    }
 }
