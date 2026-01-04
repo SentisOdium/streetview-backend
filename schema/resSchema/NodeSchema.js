@@ -1,4 +1,4 @@
-export const currentNodeSchema = (nodeData, hotspotData) => ({
+export const currentNodeSchema = (nodeData) => ({
     id: nodeData.id,
     currentNode_name: nodeData.node_name,
     coordinates: nodeData.coordinates,
@@ -7,7 +7,6 @@ export const currentNodeSchema = (nodeData, hotspotData) => ({
         alt: nodeData.alt,
     }
 });
-
 
 export const hotspotSchema = (hotspotData) => ({
     node_id: hotspotData.target_node_id,
@@ -20,9 +19,9 @@ export const hotspotSchema = (hotspotData) => ({
 });
 
 
-export const roomSpriteSchema = (nodeData) => ({
-    room_number: nodeData.room_number,
-    room_type: nodeData.room_type,
-    room_img: nodeData.room_img,
-    room_description: nodeData.room_description,
+export const roomSpriteSchema = (spriteData) => ({
+    room_number: spriteData.room_number,
+    room_type: spriteData.room_type,
+    room_img: spriteData.room_img,
+    room_description: spriteData.room_description,
 })
