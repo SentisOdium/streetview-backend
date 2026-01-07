@@ -2,7 +2,6 @@
 
 import pool from "../../config/db.js";
 export default async function getHotspotById(hostspotId) {
-
     try {
         const [rows] = await pool.query(
            `
@@ -39,4 +38,4 @@ export default async function getHotspotById(hostspotId) {
         console.error("Error in getHotspotById:", error);
         throw error;
     }
-}
+}                                                           
