@@ -1,7 +1,10 @@
 import express from "express";
 import hotspotRouter from "./routes/nodeRoutes/HotspotRoute.js";
-    const app = express();
+import cors from "cors";
+    
 
+    const app = express();
+    app.use(cors());
     app.get("/api/home", (req, res) => {
         res.json({message: "Hello World!"});
     }); 
