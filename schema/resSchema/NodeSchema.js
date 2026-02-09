@@ -1,6 +1,6 @@
 export const currentNodeSchema = (nodeData) => ({
     id: nodeData.id,
-    currentNode_name: nodeData.node_name,
+    node_name: nodeData.node_name,
     coordinates: nodeData.coordinates,
     img: {
         src: nodeData.src,
@@ -25,3 +25,9 @@ export const roomSpriteSchema = (spriteData) => ({
     room_img: spriteData.room_img,
     room_description: spriteData.room_description,
 })
+
+export default {
+    currentNodeSchema,
+    hotspotSchema,
+    roomSpriteSchema
+}
