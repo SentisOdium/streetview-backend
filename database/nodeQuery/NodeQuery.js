@@ -1,6 +1,6 @@
 import pool from "../../config/db.js";
 
-export default async function getNodeById({id, location, list}) {
+export default async function getNodeById({id, location}) {
     try {
         let params = []; 
 

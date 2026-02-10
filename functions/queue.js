@@ -58,27 +58,49 @@ class MinHeap{
     }
 }
 
-export function dijkstra(adj, src) {
-    let v = adj.length;
+export function dijkstra(adj, src, dest) {
+    let dist = {};
+    let prev = {};
     let prioQ = new MinHeap();
-    let dist = Array(v).fill(Number.MAX_SAFE_INTEGER);
+    
+    for (const node in adj) {
+        dist[node] = Number.MAX_SAFE_INTEGER;
+        prev[node] = null;
+    }
 
     dist[src] = 0;
     prioQ.push([0, src]);
 
      while (!prioQ.isEmpty()){
+        
+
         let [d, u] = prioQ.pop();
 
         if(d > dist[u]) continue;
+        
+        if(u  === dest) break;
 
-        for (let [v,w]  of adj[u]){
-            if (dist[u] + w < dist[v]){
-                dist[v] = dist[u] + w;
-                prioQ.push([dist[v], v]);
+        for (let [neighbor, weight]  of adj[u]){    
+            const newDist = dist[u] + weight;   
+
+            if (newDist < dist[neighbor]) {
+                dist[neighbor] = newDist;
+                prev[neighbor] = u; // track path
+                prioQ.push([newDist, neighbor]);
             }
         }
      }
 
-    return dist;
+      // Reconstruct path
+    const path = [];
+    let current = dest;
+    while (current !== null) {
+        path.unshift(current);
+        current = prev[current];
+    }
+
+    if (dist[dest] === Number.MAX_SAFE_INTEGER) return { dist, path: [] };
+
+    return { dist, path };
 }
 
