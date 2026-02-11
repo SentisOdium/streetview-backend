@@ -96,6 +96,7 @@ export function dijkstra(adj, src, dest) {
     let current = dest;
     while (current !== null) {
         path.unshift(current);
+        if (current === src) break;
         current = prev[current];
     }
 

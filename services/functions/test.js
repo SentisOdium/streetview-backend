@@ -1,5 +1,5 @@
 
-import getNodeListQuery from "../database/nodeQuery/ListQuery.js";
+import getNodeListQuery from "../../database/nodeQuery/ListQuery.js";
 import graphBuilder from "./graphBuilder.js";
 
 async function main() {

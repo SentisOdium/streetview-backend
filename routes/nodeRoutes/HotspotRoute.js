@@ -6,6 +6,6 @@ const hotspotRouter = Router();
 
 hotspotRouter.get('/hotspots/:id', fetchHotspotController);
 hotspotRouter.get('/search', searchNodeController);
-hotspotRouter.get('/routeAB', pathGenController);
+hotspotRouter.get('/route', pathGenController);
 
 export default hotspotRouter;

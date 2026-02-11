@@ -1,32 +1,14 @@
-import getHotspotById from "../../database/nodeQuery/HotspotQuery.js";
-import getNodeById from "../../database/nodeQuery/NodeQuery.js";
-import getSpriteByNodeId from "../../database/nodeQuery/SpriteQuery.js";
-
-import nodeSchema from "../../schema/resSchema/NodeSchema.js";
+import hotspotsGenerationService from "../../services/hotspotsGeneration.services.js";
 
 export async function fetchHotspotController(req, res) {
     try {
         const {id} = req.params;
-        const nodeId = Number(id);
-
-        const [nodeData, hotspotData, spriteData] = await Promise.all([
-            getNodeById({id: nodeId}),
-            getHotspotById(id),
-            getSpriteByNodeId(id)
-        ]);
-
-        if(!nodeData){
-            return res.status(404).json({ 
-                error: "Location not found" 
-            });
-        }
-
-         res.status(200).json({
-            Node:{
-                Current: nodeSchema.currentNodeSchema(nodeData),
-                Hotspots: hotspotData? hotspotData.map(nodeSchema.hotspotSchema) : [],
-                Room_Sprite: spriteData? spriteData.map(nodeSchema.roomSpriteSchema): [],
-            }
+        const result = await hotspotsGenerationService(id);
+        
+        res.status(200).json({
+            success: true,
+            message: "Hotspot data retrieved successfully",
+            data: result
         });
 
     } catch (error) {
