@@ -11,7 +11,7 @@ export default async function getNodeListQuery() {
                 FROM node_hotspots nd 
             `);
 
-            console.log("Fetched Node List:", rows);
+            // console.log("Fetched Node List:", rows);
 
             return rows;
     } catch (error) {

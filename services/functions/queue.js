@@ -95,13 +95,16 @@ export function dijkstra(adj, src, dest) {
     const path = [];
     let current = dest;
     while (current !== null) {
-        path.unshift(current);
+        path.unshift({
+            id: current,
+            dist: dist[current]
+        });
         if (current === src) break;
         current = prev[current];
     }
 
     if (dist[dest] === Number.MAX_SAFE_INTEGER) return { dist, path: [] };
 
-    return { dist, path };
+    return { dist , path };
 }
 

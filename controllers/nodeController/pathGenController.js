@@ -11,7 +11,7 @@ export async function pathGenController(req, res) {
             message: "Path Created Successfully",
             data: {
                 graph: pathData.graph,
-                dist: pathData.dist,
+                dist: pathData.distances,
                 path: pathData.path
             }
         });
