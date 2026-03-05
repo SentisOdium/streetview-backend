@@ -3,7 +3,7 @@ import pathGenerationService from "../../services/pathGeneration.services.js";
 export async function pathGenController(req, res) {
     try {
          
-        const { source, destination } = req.body;
+        const { source, destination } = req.query;
         const pathData = await pathGenerationService(source, destination);
 
         return res.status(200).json({ 
