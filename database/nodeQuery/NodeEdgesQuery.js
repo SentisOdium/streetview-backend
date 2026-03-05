@@ -1,14 +1,16 @@
 import pool from "../../config/db.js";
 
-export default async function getNodeListQuery() {
+export default async function getNodeEdges() {
     try {
         const [rows] = await pool.query
             (`
                 SELECT 
-                    nd.node_details_id, 
-                    nd.target_node_id,
-                    nd.path_weight
-                FROM node_hotspots nd 
+                    nh.node_details_id, 
+                    nh.target_node_id,           
+                    nh.path_weight
+                    
+                FROM node_hotspots nh 
+                  
             `);
 
             // console.log("Fetched Node List:", rows);

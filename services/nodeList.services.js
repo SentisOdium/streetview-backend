@@ -1,7 +1,6 @@
-import nameQuery from "../database/nodeQuery/namesQuery.js";
-
+import getAllNodes from "../database/nodeQuery/NodeNamesQuery.js";
 export default async function nodeListService() {
-    const nodesList = await nameQuery();
+    const nodesList = await getAllNodes();
 
     if (!nodesList || nodesList.length === 0) {
         throw new Error("No Locations Found");

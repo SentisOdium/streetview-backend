@@ -1,4 +1,4 @@
-import getNodeListQuery from "../database/nodeQuery/ListQuery.js";
+import getNodeEdges from "../database/nodeQuery/NodeEdgesQuery.js";
 import graphBuilder from "../services/functions/graphBuilder.js";
 import { dijkstra } from "../services/functions/queue.js";
 import getNodeById from "../database/nodeQuery/NodeQuery.js";
@@ -10,8 +10,8 @@ export default async function pathGenerationService(source, destination) {
     }
 
     const sourceRows = await getNodeById({ location: source });
-    const destinationRows = await getNodeById({ location: destination });
 
+    const destinationRows = await getNodeById({ location: destination });
     const sourceId = sourceRows?.id;
     const destinationId = destinationRows?.id;
     
@@ -19,7 +19,7 @@ export default async function pathGenerationService(source, destination) {
         throw new Error(`Invalid source or destination: '${source}' -> '${destination}'`);
     }
 
-    const nodes = await getNodeListQuery();
+    const nodes = await getNodeEdges();
 
     if (!nodes || nodes.length === 0) {
         throw new Error("No Locations found");

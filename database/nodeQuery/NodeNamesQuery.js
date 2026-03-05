@@ -1,11 +1,12 @@
 import pool from "../../config/db.js";
 
-export default async function nameQuery(){
+export default async function getAllNodes(){
     try {
         const [rows] = await pool.query(`
                 SELECT 
                     n.id, 
-                    nd.node_name
+                    nd.node_name,
+                    nd.type
                 FROM node n
                     LEFT JOIN node_details nd ON n.id = nd.node_id
             `)
