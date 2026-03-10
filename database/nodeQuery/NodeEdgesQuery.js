@@ -7,9 +7,15 @@ export default async function getNodeEdges() {
                 SELECT 
                     nh.node_details_id, 
                     nh.target_node_id,           
-                    nh.path_weight
+                    nh.path_weight,
                     
+                    nd.node_name,
+                    nd.type
+
                 FROM node_hotspots nh 
+
+                LEFT JOIN node_details nd 
+                    ON nd.node_id = nh.node_details_id
                   
             `);
 
