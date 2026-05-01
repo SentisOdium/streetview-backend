@@ -14,6 +14,9 @@ export default async function pathGenerationService(source, destination) {
     const destinationRows = await getNodeById({ location: destination });
     const sourceId = sourceRows?.id;
     const destinationId = destinationRows?.id;
+
+    // console.log("source rows:", sourceRows);
+    // console.log("destination rows:", destinationRows);
     
     if (!sourceId || !destinationId) {
         throw new Error(`Invalid source or destination: '${source}' -> '${destination}'`);
@@ -47,8 +50,8 @@ export default async function pathGenerationService(source, destination) {
     // console.log("Shortest Path:", result.path);
     // console.log("Distances:", result.dist);
     // console.log("Graph:", builtGraph);
-
-    console.log("Detailedpath:", detailedPath)
+    
+    
     return {
         // graph: builtGraph, //optional: return the graph for debugging or visualization
         // distances: result.dist, //optional: return distances for all nodes
