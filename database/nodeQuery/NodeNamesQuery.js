@@ -4,7 +4,7 @@ export default async function getAllNodes(){
     try {
         const [rows] = await pool.query(`
                 SELECT 
-                    n.id, 
+                    n.id AS id, 
                     nd.node_name,
                     nd.type
                 FROM node n

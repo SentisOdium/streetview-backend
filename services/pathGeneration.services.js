@@ -2,6 +2,7 @@ import getNodeEdges from "../database/nodeQuery/NodeEdgesQuery.js";
 import graphBuilder from "../services/functions/graphBuilder.js";
 import { dijkstra } from "../services/functions/queue.js";
 import getNodeById from "../database/nodeQuery/NodeQuery.js";
+import getAllNodes from "../database/nodeQuery/NodeNamesQuery.js";
 
 export default async function pathGenerationService(source, destination) {
 
@@ -22,7 +23,10 @@ export default async function pathGenerationService(source, destination) {
         throw new Error(`Invalid source or destination: '${source}' -> '${destination}'`);
     }
 
-    const nodes = await getNodeEdges();
+    const [nodes, allNodes] = await Promise.all([
+        getNodeEdges(),
+        getAllNodes()
+    ]);
 
     if (!nodes || nodes.length === 0) {
         throw new Error("No Locations found");
@@ -40,7 +44,7 @@ export default async function pathGenerationService(source, destination) {
     const result = dijkstra(builtGraph, sourceId, destinationId);
 
     const nodeDetailsById = new Map(
-        nodes.map(node => [node.id, node])
+        allNodes.map(node => [node.id, node])
     );
 
    const detailedPath = result.path.map(nodeObj => {

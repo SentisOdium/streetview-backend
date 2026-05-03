@@ -2,7 +2,7 @@ function graphBuilder(rows){
     const graph = {};
 
     rows.forEach(row => {
-        const from = row.node_details_id;
+        const from = row.id;
         const to = row.target_node_id;
         const weight = row.path_weight;
 
