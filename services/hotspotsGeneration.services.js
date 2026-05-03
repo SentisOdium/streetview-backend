@@ -21,11 +21,9 @@ export default async function hotspotsGenerationService(nodeId) {
         throw new Error("Node not found");
     }
 
-    return{
-        Node: {
+    return{ 
             Current: nodeData ? NodeSchema.currentNodeSchema(nodeData) : null,
             Hotspots: hotspotData? hotspotData.map(NodeSchema.hotspotSchema)  : [],
             Room_Sprite: spriteData? spriteData.map(NodeSchema.roomSpriteSchema): [],
-        }
     }
 }

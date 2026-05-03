@@ -18,10 +18,8 @@ export default async function searchNodeService(location) {
 
 
     return {
-        Node:{
             Current: nodeData ? NodeSchema.currentNodeSchema(nodeData) : null,
             Hotspots: hotspotdata? hotspotdata.map(NodeSchema.hotspotSchema)  : [],
             Room_Sprite: spriteData? spriteData.map(NodeSchema.roomSpriteSchema): [],
-        }
     }
 }

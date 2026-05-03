@@ -6,7 +6,5 @@ export default async function nodeListService() {
         throw new Error("No Locations Found");
     }
 
-    return {
-        list: nodesList
-    };
+    return nodesList || [];
 }

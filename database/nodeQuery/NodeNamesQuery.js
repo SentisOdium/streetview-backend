@@ -8,7 +8,7 @@ export default async function getAllNodes(){
                     nd.node_name,
                     nd.type
                 FROM node n
-                    LEFT JOIN node_details nd ON n.id = nd.node_id
+                    INNER JOIN node_details nd ON n.id = nd.node_id
             `)
 
             return rows

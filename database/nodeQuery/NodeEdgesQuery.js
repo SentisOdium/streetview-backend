@@ -5,7 +5,7 @@ export default async function getNodeEdges() {
         const [rows] = await pool.query
             (`
                 SELECT 
-                    nh.node_details_id, 
+                    nh.node_details_id AS id, 
                     nh.target_node_id,           
                     nh.path_weight,
                     

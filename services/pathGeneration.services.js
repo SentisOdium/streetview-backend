@@ -29,19 +29,31 @@ export default async function pathGenerationService(source, destination) {
     }
      
     const builtGraph = graphBuilder(nodes);
+
+    if (!builtGraph[sourceId]) {
+        throw new Error(`Source node ${sourceId} not in graph`);
+    }
+
+    if (!builtGraph[destinationId]) {
+        throw new Error(`Destination node ${destinationId} not in graph`);
+    }
     const result = dijkstra(builtGraph, sourceId, destinationId);
 
-    const detailedPath = result.path.map(nodeObj => {
-    const nodeId = nodeObj.id; // <-- extract numeric id
-    const details = nodes.find(n => n.node_details_id === nodeId);
+    const nodeDetailsById = new Map(
+        nodes.map(node => [node.id, node])
+    );
+
+   const detailedPath = result.path.map(nodeObj => {
+        const details = nodeDetailsById.get(nodeObj.id);
+
         return {
-            id: nodeId,
-            dist: nodeObj.dist, // optionally include distance
-            name: details?.node_name || "Unknown",
-            type: details?.type || "N/A"
+            id: nodeObj.id,
+            dist: nodeObj.dist,
+            name: details?.node_name ?? "Unknown",
+            type: details?.type ?? "N/A"
         };
     });
-    
+            
     if (result.path.length === 0) {
         throw new Error("No path found from source to destination");
     }
