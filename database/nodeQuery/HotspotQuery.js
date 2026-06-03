@@ -13,6 +13,7 @@ export default async function getHotspotById(hostspotId) {
                     nh.target_node_id,
                     nh.direction,
 
+                    nd2.node_id AS destination_node_id,
                     nd2.node_name AS target_name,
                     nc2.coordinates AS target_coordinates
 
@@ -33,7 +34,7 @@ export default async function getHotspotById(hostspotId) {
                 INNER JOIN node_coordinates nc2
                     ON nd2.id = nc2.node_details_id
 
-            WHERE nd.id = ?;
+            WHERE n.id = ?;
             `, [hostspotId]);
 
             return rows;
