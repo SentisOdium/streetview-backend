@@ -8,14 +8,16 @@ export const currentNodeSchema = (nodeData) => ({
     }
 });
 
-export const hotspotSchema = (hotspotData)       => ({
-    node_id: hotspotData.target_node_id,
-    currentNode_id: hotspotData.id,
-    hotspot_name: hotspotData.target_name,
-    coordinates:{
-        node_Coordinates: hotspotData.coordinates,
+export const hotspotSchema = (hotspotData) => ({
+    destination_id: hotspotData.destination_node_id,
+    destination_name: hotspotData.target_name,
+    hotspot_label: hotspotData.direction ?? hotspotData.target_name,
+    yaw: hotspotData.yaw ?? null,
+    pitch: hotspotData.pitch ?? null,
+    coordinates: {
+        node_Coordinates: hotspotData.target_coordinates ?? hotspotData.coordinates,
         node_Direction: hotspotData.direction,
-    }
+    },
 });
 
 

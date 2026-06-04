@@ -6,11 +6,11 @@ export default async function getHotspotById(hostspotId) {
         const [rows] = await pool.query(
            `
             SELECT 
-                    n.id,
+                    n.id AS source_node_id,
                     nd.node_name,
                     nc.coordinates,
 
-                    nh.target_node_id,
+                    nh.id AS hotspot_record_id,
                     nh.direction,
 
                     nd2.node_id AS destination_node_id,
