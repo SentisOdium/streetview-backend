@@ -18,7 +18,7 @@ const limiter = rateLimit({
 
     app.use(cors());
     app.use(express.json());
-    app.use(helmet());
+    app.use(helmet({ crossOriginResourcePolicy: false }));
     app.use("/api", hotspotRouter);
     app.use("/api/admin", adminRouter);
     app.use("/uploads", express.static(path.join(__dirname, "uploads")));
