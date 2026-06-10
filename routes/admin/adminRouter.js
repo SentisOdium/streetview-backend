@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
-import { adminAuth } from "../../middleware/adminAuth.js";
+import { authenticateAdmin } from "../../middleware/authenticateAdmin.js";
 import {
   dashboardController,
   listLocationsController,
@@ -47,7 +47,7 @@ const upload = multer({
 });
 
 const adminRouter = Router();
-adminRouter.use(adminAuth);
+adminRouter.use(authenticateAdmin);
 
 adminRouter.get("/dashboard", dashboardController);
 adminRouter.get("/floors", floorsController);
