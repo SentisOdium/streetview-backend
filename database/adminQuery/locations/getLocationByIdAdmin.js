@@ -9,6 +9,9 @@ export async function getLocationByIdAdmin(id) {
       nc.coordinates,
       ni.src AS panorama_image,
       ni.alt AS image_alt,
+      ni.rotation_offset,
+      ni.rotation_offset_x,
+      ni.rotation_offset_z,
       nd.id AS node_details_id
     FROM node n
     INNER JOIN node_details nd ON n.id = nd.node_id

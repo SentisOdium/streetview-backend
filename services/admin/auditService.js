@@ -61,8 +61,20 @@ export async function logAudit({
   }
 }
 
+const parseJson = (val) => {
+  if (typeof val === "string") {
+    try {
+      return JSON.parse(val);
+    } catch {
+      return val;
+    }
+  }
+  return val;
+};
+
 export async function getAuditLogs({ limit = 50, offset = 0 } = {}) {
   try {
+    const [[{ total }]] = await pool.query("SELECT COUNT(*) AS total FROM audit_log");
     const [rows] = await pool.query(
       `SELECT id, action, entity_type, entity_id, location_name, admin_user,
               old_value, new_value, created_at
@@ -71,15 +83,22 @@ export async function getAuditLogs({ limit = 50, offset = 0 } = {}) {
        LIMIT ? OFFSET ?`,
       [limit, offset]
     );
-    return rows.map((r) => ({
-      ...r,
-      old_value: r.old_value ? JSON.parse(r.old_value) : null,
-      new_value: r.new_value ? JSON.parse(r.new_value) : null,
-    }));
-  } catch {
+    return {
+      logs: rows.map((r) => ({
+        ...r,
+        old_value: r.old_value ? parseJson(r.old_value) : null,
+        new_value: r.new_value ? parseJson(r.new_value) : null,
+      })),
+      total
+    };
+  } catch (err) {
+    console.error("Database query failed, falling back to file logs:", err.message);
     await ensureAuditFile();
     const raw = await fs.readFile(AUDIT_FILE, "utf-8");
     const logs = JSON.parse(raw);
-    return logs.slice(offset, offset + limit);
+    return {
+      logs: logs.slice(offset, offset + limit),
+      total: logs.length
+    };
   }
 }

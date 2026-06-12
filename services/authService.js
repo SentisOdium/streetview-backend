@@ -1,6 +1,35 @@
 import bcrypt from 'bcrypt';
 import pool from '../config/db.js';
 import { generateToken } from '../utils/jwt.js';
+import { logAudit } from './admin/auditService.js';
+
+function maskEmail(email) {
+  const parts = email.split('@');
+  if (parts.length !== 2) return email;
+  const [local, domain] = parts;
+  const domainParts = domain.split('.');
+  if (domainParts.length < 2) return `${local}@*******.com`;
+  const tld = domainParts[domainParts.length - 1];
+  return `${local}@*******.${tld}`;
+}
+
+export const getAllAdmins = async () => {
+  const [rows] = await pool.query(
+    'SELECT admin_id, email, first_name, last_name, created_at, last_login FROM admins ORDER BY created_at DESC'
+  );
+  
+  return rows.map(admin => {
+    const firstInitial = admin.first_name ? `${admin.first_name.charAt(0).toUpperCase()}.` : '';
+    return {
+      admin_id: admin.admin_id,
+      last_name: admin.last_name,
+      first_name_initial: firstInitial,
+      email: maskEmail(admin.email),
+      created_at: admin.created_at,
+      last_login: admin.last_login
+    };
+  });
+};
 
 export const loginAdmin = async (email, password, ipAddress) => {
   // Validate input
@@ -73,6 +102,18 @@ export const registerAdmin = async (email, password, firstName, middleInitial, l
     'INSERT INTO admins (email, password_hash, first_name, middle_initial, last_name) VALUES (?, ?, ?, ?, ?)',
     [email, passwordHash, firstName, middleInitial || null, lastName]
   );
+
+  try {
+    await logAudit({
+      action: 'CREATE',
+      entityType: 'admin',
+      entityId: result.insertId,
+      locationName: `Admin Registration: ${email}`,
+      adminUser: 'System'
+    });
+  } catch (err) {
+    console.error('Failed to log admin registration audit log:', err);
+  }
 
   return result.insertId;
 };

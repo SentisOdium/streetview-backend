@@ -10,8 +10,8 @@ export default async function getSpriteByNodeId(nodeId) {
             ns.room_description
             
         FROM  node_sprite ns
-        
-        WHERE ns.node_details_id = ?`
+        JOIN  node_details nd ON ns.node_details_id = nd.id
+        WHERE nd.node_id = ?`
         , [nodeId]);
         return rows;
     } catch (error) {

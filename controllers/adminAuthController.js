@@ -1,4 +1,5 @@
 import * as authService from '../services/authService.js';
+import { adminRegisterSchema } from '../schema/adminValidation.js';
 
 const cookieConfig = {
   httpOnly: true,
@@ -54,7 +55,14 @@ export const verifySession = async (req, res) => {
 
 export const register = async (req, res) => {
   try {
-    const { email, password, firstName, middleInitial, lastName } = req.body;
+    const validationResult = await adminRegisterSchema.safeParseAsync(req.body);
+    
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.issues.map(err => err.message).join('. ');
+      return res.status(400).json({ success: false, message: errorMessages });
+    }
+
+    const { email, password, firstName, middleInitial, lastName } = validationResult.data;
     
     await authService.registerAdmin(email, password, firstName, middleInitial, lastName);
 
@@ -70,3 +78,18 @@ export const register = async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal server error.' });
   }
 };
+
+export const getAdmins = async (req, res) => {
+  try {
+    const admins = await authService.getAllAdmins();
+    res.status(200).json({
+      success: true,
+      message: 'Admin list retrieved successfully',
+      data: admins
+    });
+  } catch (error) {
+    console.error('Failed to get admins:', error);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+};
+

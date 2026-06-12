@@ -1,6 +1,6 @@
 import pool from "../../../config/db.js";
 
-export async function createLocationAdmin({ node_name, coordinates, panorama_image, description, floor }) {
+export async function createLocationAdmin({ node_name, coordinates, panorama_image, rotation_offset, rotation_offset_x, rotation_offset_z, description, floor }) {
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
@@ -21,10 +21,17 @@ export async function createLocationAdmin({ node_name, coordinates, panorama_ima
       );
     }
 
-    if (panorama_image) {
+    if (panorama_image || rotation_offset !== undefined || rotation_offset_x !== undefined || rotation_offset_z !== undefined) {
       await conn.query(
-        `INSERT INTO node_img (node_details_id, src, alt) VALUES (?, ?, ?)`,
-        [detailsId, panorama_image, node_name]
+        `INSERT INTO node_img (node_details_id, src, alt, rotation_offset, rotation_offset_x, rotation_offset_z) VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          detailsId,
+          panorama_image || "",
+          node_name,
+          rotation_offset !== undefined ? rotation_offset : 0.0,
+          rotation_offset_x !== undefined ? rotation_offset_x : 0.0,
+          rotation_offset_z !== undefined ? rotation_offset_z : 0.0
+        ]
       );
     }
 

@@ -18,7 +18,7 @@ export default async function pathGenerationService(source, destination) {
 
     // console.log("source rows:", sourceRows);
     // console.log("destination rows:", destinationRows);
-    
+
     if (!sourceId || !destinationId) {
         throw new Error(`Invalid source or destination: '${source}' -> '${destination}'`);
     }
@@ -31,8 +31,10 @@ export default async function pathGenerationService(source, destination) {
     if (!nodes || nodes.length === 0) {
         throw new Error("No Locations found");
     }
-     
+
     const builtGraph = graphBuilder(nodes);
+
+
 
     if (!builtGraph[sourceId]) {
         throw new Error(`Source node ${sourceId} not in graph`);
@@ -47,7 +49,7 @@ export default async function pathGenerationService(source, destination) {
         allNodes.map(node => [node.id, node])
     );
 
-   const detailedPath = result.path.map(nodeObj => {
+    const detailedPath = result.path.map(nodeObj => {
         const details = nodeDetailsById.get(nodeObj.id);
 
         return {
@@ -57,7 +59,7 @@ export default async function pathGenerationService(source, destination) {
             type: details?.type ?? "N/A"
         };
     });
-            
+
     if (result.path.length === 0) {
         throw new Error("No path found from source to destination");
     }
@@ -66,8 +68,8 @@ export default async function pathGenerationService(source, destination) {
     // console.log("Shortest Path:", result.path);
     // console.log("Distances:", result.dist);
     // console.log("Graph:", builtGraph);
-    
-    
+
+
     return {
         // graph: builtGraph, //optional: return the graph for debugging or visualization
         // distances: result.dist, //optional: return distances for all nodes

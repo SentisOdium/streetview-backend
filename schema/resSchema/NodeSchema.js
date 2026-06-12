@@ -5,6 +5,9 @@ export const currentNodeSchema = (nodeData) => ({
     img: {
         src: nodeData.src,
         alt: nodeData.alt,
+        rotation_offset: nodeData.rotationOffset,
+        rotation_offset_x: nodeData.rotationOffsetX,
+        rotation_offset_z: nodeData.rotationOffsetZ,
     }
 });
 

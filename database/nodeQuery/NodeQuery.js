@@ -10,7 +10,10 @@ export default async function getNodeById({id, location}) {
                 nd.node_name, 
                 nc.coordinates, 
                 ni.src, 
-                ni.alt
+                ni.alt,
+                ni.rotation_offset AS rotationOffset,
+                ni.rotation_offset_x AS rotationOffsetX,
+                ni.rotation_offset_z AS rotationOffsetZ
 
             FROM node n
                 LEFT JOIN node_details nd 

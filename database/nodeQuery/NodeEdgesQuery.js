@@ -5,8 +5,8 @@ export default async function getNodeEdges() {
         const [rows] = await pool.query
             (`
                 SELECT 
-                    nh.node_details_id AS id, 
-                    nh.target_node_id,           
+                    nd.node_id AS id, 
+                    nd2.node_id AS target_node_id,           
                     nh.path_weight,
                     
                     nd.node_name,
@@ -14,9 +14,11 @@ export default async function getNodeEdges() {
 
                 FROM node_hotspots nh 
 
-                LEFT JOIN node_details nd 
-                    ON nd.node_id = nh.node_details_id
-                  
+                INNER JOIN node_details nd 
+                    ON nd.id = nh.node_details_id
+
+                INNER JOIN node_details nd2
+                    ON nd2.id = nh.target_node_id
             `);
 
             // console.log("Fetched Node List:", rows);

@@ -10,7 +10,6 @@ function graphBuilder(rows){
         if(!graph[to]) graph[to] = [];
 
         graph[from].push([to, weight]);
-        graph[to].push([from, weight]);
     });
 
     return graph;
