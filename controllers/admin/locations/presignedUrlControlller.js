@@ -11,16 +11,16 @@ const s3 = new S3Client({
 
 export const getUploadPresignedUrlController = async (req, res) => {
     try {
-        const { filename, contentType } = req.query;
+        const { filename, contentType, key } = req.query;
 
-        if (!filename || !contentType) {
+        if ((!filename && !key) || !contentType) {
             return res.status(400).json({
                 success: false,
-                message: "Filename and content type are required"
+                message: "Filename/key and content type are required"
             })
         }
 
-        const uniqueKey = `pano/${Date.now()}-${filename.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+        const uniqueKey = key ? `pano/${key}` : `pano/${Date.now()}-${filename.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
 
         const command = new PutObjectCommand({
             Bucket: process.env.AWS_BUCKET,

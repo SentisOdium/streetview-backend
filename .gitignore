@@ -1,1 +1,4 @@
-*.kilo
+.kilo/
+*.env
+node_modules/
+uploads/

@@ -14,6 +14,7 @@ export { updateLocationController } from './locations/updateLocationController.j
 export { deleteLocationController } from './locations/deleteLocationController.js';
 export { floorsController } from './locations/floorsController.js';
 export { getUploadPresignedUrlController } from './locations/presignedUrlControlller.js';
+export { getS3ObjectsController } from './locations/s3ListController.js';
 
 // =========================
 // Hotspots
