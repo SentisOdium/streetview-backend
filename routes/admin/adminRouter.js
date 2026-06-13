@@ -24,6 +24,7 @@ import {
   exportController,
   auditLogsController,
   floorsController,
+  getUploadPresignedUrlController
 } from "../../controllers/admin/adminController.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -56,6 +57,7 @@ adminRouter.get("/locations/:id", getLocationController);
 adminRouter.post("/locations", createLocationController);
 adminRouter.put("/locations/:id", updateLocationController);
 adminRouter.delete("/locations/:id", deleteLocationController);
+adminRouter.get("/upload-presigned", getUploadPresignedUrlController);
 
 adminRouter.post("/upload", upload.single("file"), (req, res) => {
   if (!req.file) {

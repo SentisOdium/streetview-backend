@@ -1,11 +1,11 @@
 import pool from "../../../config/db.js";
 
-export async function createLocationAdmin({ node_name, coordinates, panorama_image, rotation_offset, rotation_offset_x, rotation_offset_z, description, floor }) {
+export async function createLocationAdmin({ node_name, panorama_image, rotation_offset, rotation_offset_x, rotation_offset_z, description, floor }) {
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
 
-    const [nodeResult] = await conn.query(`INSERT INTO node DEFAULT VALUES`);
+    const [nodeResult] = await conn.query(`INSERT INTO node () VALUES ()`);
     const nodeId = nodeResult.insertId;
 
     const [detailsResult] = await conn.query(
@@ -13,13 +13,6 @@ export async function createLocationAdmin({ node_name, coordinates, panorama_ima
       [nodeId, node_name, floor || description || "general"]
     );
     const detailsId = detailsResult.insertId;
-
-    if (coordinates) {
-      await conn.query(
-        `INSERT INTO node_coordinates (node_details_id, coordinates) VALUES (?, ?)`,
-        [detailsId, coordinates]
-      );
-    }
 
     if (panorama_image || rotation_offset !== undefined || rotation_offset_x !== undefined || rotation_offset_z !== undefined) {
       await conn.query(

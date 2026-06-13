@@ -13,6 +13,7 @@ export { createLocationController } from './locations/createLocationController.j
 export { updateLocationController } from './locations/updateLocationController.js';
 export { deleteLocationController } from './locations/deleteLocationController.js';
 export { floorsController } from './locations/floorsController.js';
+export { getUploadPresignedUrlController } from './locations/presignedUrlControlller.js';
 
 // =========================
 // Hotspots

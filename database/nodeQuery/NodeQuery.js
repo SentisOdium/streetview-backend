@@ -8,7 +8,6 @@ export default async function getNodeById({id, location}) {
             SELECT 
                 n.id, 
                 nd.node_name, 
-                nc.coordinates, 
                 ni.src, 
                 ni.alt,
                 ni.rotation_offset AS rotationOffset,
@@ -18,8 +17,6 @@ export default async function getNodeById({id, location}) {
             FROM node n
                 LEFT JOIN node_details nd 
                     ON n.id = nd.node_id
-                LEFT JOIN node_coordinates nc 
-                    ON nd.id = nc.node_details_id
                 LEFT JOIN node_img ni 
                     ON nd.id = ni.node_details_id
             

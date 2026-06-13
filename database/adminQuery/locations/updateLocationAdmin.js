@@ -2,7 +2,7 @@ import pool from "../../../config/db.js";
 import { getNodeDetailsId } from "../utils/getNodeDetailsId.js";
 import { getLocationByIdAdmin } from "./getLocationByIdAdmin.js";
 
-export async function updateLocationAdmin(id, { node_name, coordinates, panorama_image, rotation_offset, rotation_offset_x, rotation_offset_z, description, floor }) {
+export async function updateLocationAdmin(id, { node_name, panorama_image, rotation_offset, rotation_offset_x, rotation_offset_z, description, floor }) {
   const detailsId = await getNodeDetailsId(id);
   if (!detailsId) throw new Error("Location not found");
 
@@ -14,18 +14,6 @@ export async function updateLocationAdmin(id, { node_name, coordinates, panorama
       `UPDATE node_details SET node_name = COALESCE(?, node_name), type = COALESCE(?, type) WHERE id = ?`,
       [node_name, floor || description, detailsId]
     );
-
-    if (coordinates !== undefined) {
-      const [existing] = await conn.query(
-        `SELECT id FROM node_coordinates WHERE node_details_id = ?`,
-        [detailsId]
-      );
-      if (existing.length) {
-        await conn.query(`UPDATE node_coordinates SET coordinates = ? WHERE node_details_id = ?`, [coordinates, detailsId]);
-      } else {
-        await conn.query(`INSERT INTO node_coordinates (node_details_id, coordinates) VALUES (?, ?)`, [detailsId, coordinates]);
-      }
-    }
 
     if (panorama_image !== undefined || rotation_offset !== undefined || rotation_offset_x !== undefined || rotation_offset_z !== undefined) {
       const [existing] = await conn.query(`SELECT id FROM node_img WHERE node_details_id = ?`, [detailsId]);

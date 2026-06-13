@@ -1,4 +1,4 @@
-import {Router} from 'express';
+import { Router } from 'express';
 import apicache from "apicache";
 import { fetchHotspotController } from '../../controllers/nodeController/nodeController.js';
 import { searchNodeController } from '../../controllers/nodeController/searchNodeController.js';
@@ -8,20 +8,20 @@ import nodeListController from '../../controllers/nodeController/nodeListControl
 const hotspotRouter = Router();
 const cache = apicache.middleware;
 
-hotspotRouter.get('/hotspots/:id', 
-        cache('60 minutes'), 
-            fetchHotspotController);
+hotspotRouter.get('/hotspots/:id',
+    cache('1 minutes'),
+    fetchHotspotController);
 
-hotspotRouter.get('/search', 
-        cache('30 minutes'), 
-            searchNodeController);
+hotspotRouter.get('/search',
+    cache('1 minutes'),
+    searchNodeController);
 
-hotspotRouter.get('/route', 
-        cache('30 minutes'), 
-            pathGenController);
+hotspotRouter.get('/route',
+    cache('30 minutes'),
+    pathGenController);
 
-hotspotRouter.get('/list', 
-        cache('15 minutes'), 
-            nodeListController);
+hotspotRouter.get('/list',
+    cache('15 minutes'),
+    nodeListController);
 
 export default hotspotRouter;

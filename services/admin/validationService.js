@@ -26,13 +26,6 @@ export async function validateNavigationGraph() {
         locationId: loc.id,
       });
     }
-    if (!loc.coordinates?.trim()) {
-      warnings.push({
-        type: "missing_coordinates",
-        message: `Location "${loc.node_name}" has no coordinates`,
-        locationId: loc.id,
-      });
-    }
   }
 
   const connectionKey = (sourceId, destId) => `${sourceId}->${destId}`;
@@ -155,7 +148,7 @@ export async function validateBeforeSave(entityType, payload) {
   }
 
   return {
-    valid: result.valid && entityErrors.length === 0,
+    valid: entityErrors.length === 0,
     errors: [...entityErrors, ...result.errors],
     warnings: result.warnings,
   };

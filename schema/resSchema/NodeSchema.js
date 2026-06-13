@@ -1,7 +1,6 @@
 export const currentNodeSchema = (nodeData) => ({
     id: nodeData.id,
     node_name: nodeData.node_name,
-    coordinates: nodeData.coordinates,
     img: {
         src: nodeData.src,
         alt: nodeData.alt,
@@ -17,10 +16,6 @@ export const hotspotSchema = (hotspotData) => ({
     hotspot_label: hotspotData.direction ?? hotspotData.target_name,
     yaw: hotspotData.yaw ?? null,
     pitch: hotspotData.pitch ?? null,
-    coordinates: {
-        node_Coordinates: hotspotData.target_coordinates ?? hotspotData.coordinates,
-        node_Direction: hotspotData.direction,
-    },
 });
 
 

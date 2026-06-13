@@ -6,7 +6,6 @@ export async function getAllLocationsAdmin() {
       n.id,
       nd.node_name,
       nd.type AS floor,
-      nc.coordinates,
       ni.src AS panorama_image,
       ni.alt AS image_alt,
       ni.rotation_offset,
@@ -15,7 +14,6 @@ export async function getAllLocationsAdmin() {
       nd.id AS node_details_id
     FROM node n
     INNER JOIN node_details nd ON n.id = nd.node_id
-    LEFT JOIN node_coordinates nc ON nd.id = nc.node_details_id
     LEFT JOIN node_img ni ON nd.id = ni.node_details_id
     ORDER BY nd.node_name ASC
   `);
