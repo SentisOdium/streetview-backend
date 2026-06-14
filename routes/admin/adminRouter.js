@@ -3,6 +3,7 @@ import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
 import { authenticateAdmin } from "../../middleware/authenticateAdmin.js";
+import apicache from "apicache";
 import {
   dashboardController,
   listLocationsController,
@@ -51,6 +52,8 @@ const upload = multer({
 const adminRouter = Router();
 adminRouter.use(authenticateAdmin);
 
+const cache = apicache.middleware;
+
 adminRouter.get("/dashboard", dashboardController);
 adminRouter.get("/floors", floorsController);
 adminRouter.get("/locations", listLocationsController);
@@ -59,7 +62,7 @@ adminRouter.post("/locations", createLocationController);
 adminRouter.put("/locations/:id", updateLocationController);
 adminRouter.delete("/locations/:id", deleteLocationController);
 adminRouter.get("/upload-presigned", getUploadPresignedUrlController);
-adminRouter.get("/s3-objects", getS3ObjectsController);
+adminRouter.get("/s3-objects", cache("2 minutes"), getS3ObjectsController);
 
 adminRouter.post("/upload", upload.single("file"), (req, res) => {
   if (!req.file) {

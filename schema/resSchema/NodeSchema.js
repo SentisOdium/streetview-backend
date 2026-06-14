@@ -24,6 +24,8 @@ export const roomSpriteSchema = (spriteData) => ({
     room_type: spriteData.room_type,
     room_img: spriteData.room_img,
     room_description: spriteData.room_description,
+    phone: spriteData.phone,
+    hours: spriteData.hours,
 })
 
 export default {

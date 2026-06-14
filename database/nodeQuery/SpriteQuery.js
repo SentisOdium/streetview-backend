@@ -7,7 +7,9 @@ export default async function getSpriteByNodeId(nodeId) {
             ns.room_number, 
             ns.room_type, 
             ns.room_img, 
-            ns.room_description
+            ns.room_description,
+            ns.phone,
+            ns.hours
             
         FROM  node_sprite ns
         JOIN  node_details nd ON ns.node_details_id = nd.id

@@ -5,7 +5,7 @@ export async function getRoomsByNodeIdAdmin(nodeId) {
   const detailsId = await getNodeDetailsId(nodeId);
   if (!detailsId) return [];
   const [rows] = await pool.query(
-    `SELECT id, room_number, room_type, room_img, room_description
+    `SELECT id, room_number, room_type, room_img, room_description, phone, hours
      FROM node_sprite WHERE node_details_id = ?`,
     [detailsId]
   );

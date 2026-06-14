@@ -6,9 +6,11 @@ export async function updateRoomAdmin(roomId, room) {
       room_number = COALESCE(?, room_number),
       room_type = COALESCE(?, room_type),
       room_img = COALESCE(?, room_img),
-      room_description = COALESCE(?, room_description)
+      room_description = COALESCE(?, room_description),
+      phone = COALESCE(?, phone),
+      hours = COALESCE(?, hours)
      WHERE id = ?`,
-    [room.room_number, room.room_type, room.room_img, room.room_description, roomId]
+    [room.room_number, room.room_type, room.room_img, room.room_description, room.phone !== undefined ? room.phone : null, room.hours !== undefined ? room.hours : null, roomId]
   );
   return { updated: true };
 }
