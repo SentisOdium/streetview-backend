@@ -39,3 +39,9 @@ export { graphController } from './utils/graphController.js';
 export { validateController } from './utils/validateController.js';
 export { routeTestController } from './utils/routeTestController.js';
 export { exportController } from './utils/exportController.js';
+
+// =========================
+// Coordinates
+// =========================
+export { listCoordinatesController } from './coordinates/listCoordinatesController.js';
+export { updateCoordinatesController } from './coordinates/updateCoordinatesController.js';

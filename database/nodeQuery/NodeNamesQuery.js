@@ -6,9 +6,12 @@ export default async function getAllNodes(){
                 SELECT 
                     n.id AS id, 
                     nd.node_name,
-                    nd.type
+                    nd.type,
+                    nc.coordinates,
+                    nc.floor AS coordinate_floor
                 FROM node n
                     INNER JOIN node_details nd ON n.id = nd.node_id
+                    LEFT JOIN node_coordinates nc ON nd.id = nc.node_details_id
             `)
 
             return rows

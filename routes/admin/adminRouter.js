@@ -26,7 +26,9 @@ import {
   auditLogsController,
   floorsController,
   getUploadPresignedUrlController,
-  getS3ObjectsController
+  getS3ObjectsController,
+  listCoordinatesController,
+  updateCoordinatesController
 } from "../../controllers/admin/adminController.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -63,6 +65,9 @@ adminRouter.put("/locations/:id", updateLocationController);
 adminRouter.delete("/locations/:id", deleteLocationController);
 adminRouter.get("/upload-presigned", getUploadPresignedUrlController);
 adminRouter.get("/s3-objects", cache("2 minutes"), getS3ObjectsController);
+
+adminRouter.get("/coordinates", listCoordinatesController);
+adminRouter.put("/coordinates", updateCoordinatesController);
 
 adminRouter.post("/upload", upload.single("file"), (req, res) => {
   if (!req.file) {

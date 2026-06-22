@@ -12,7 +12,11 @@ export async function updateLocationAdmin(id, { node_name, panorama_image, rotat
 
     await conn.query(
       `UPDATE node_details SET node_name = COALESCE(?, node_name), type = COALESCE(?, type) WHERE id = ?`,
-      [node_name, floor || description, detailsId]
+      [
+        node_name !== undefined ? node_name : null,
+        floor !== undefined ? floor : (description !== undefined ? description : null),
+        detailsId
+      ]
     );
 
     if (panorama_image !== undefined || rotation_offset !== undefined || rotation_offset_x !== undefined || rotation_offset_z !== undefined) {

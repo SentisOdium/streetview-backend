@@ -11,10 +11,13 @@ export async function getAllLocationsAdmin() {
       ni.rotation_offset,
       ni.rotation_offset_x,
       ni.rotation_offset_z,
-      nd.id AS node_details_id
+      nd.id AS node_details_id,
+      nc.coordinates,
+      nc.floor AS coordinate_floor
     FROM node n
     INNER JOIN node_details nd ON n.id = nd.node_id
     LEFT JOIN node_img ni ON nd.id = ni.node_details_id
+    LEFT JOIN node_coordinates nc ON nd.id = nc.node_details_id
     ORDER BY nd.node_name ASC
   `);
   return rows;
