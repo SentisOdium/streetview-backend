@@ -1,5 +1,9 @@
 import jwt from 'jsonwebtoken';
 
+if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'fallback-secret-key-for-dev-only-change-in-prod')) {
+  throw new Error("CRITICAL SECURITY ERROR: JWT_SECRET environment variable must be securely set in production!");
+}
+
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-for-dev-only-change-in-prod';
 const JWT_EXPIRES_IN = '24h';
 

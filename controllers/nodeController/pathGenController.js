@@ -12,7 +12,8 @@ export async function pathGenController(req, res) {
             data: {
                 graph: pathData.graph,
                 dist: pathData.distances,
-                path: pathData.path
+                path: pathData.path,
+                paths: pathData.paths
             }
         });
 

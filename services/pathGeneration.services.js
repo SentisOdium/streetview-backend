@@ -1,6 +1,6 @@
 import getNodeEdges from "../database/nodeQuery/NodeEdgesQuery.js";
 import graphBuilder from "../services/functions/graphBuilder.js";
-import { dijkstra } from "../services/functions/queue.js";
+import { yenKShortestPaths } from "../services/functions/queue.js";
 import getNodeById from "../database/nodeQuery/NodeQuery.js";
 import getAllNodes from "../database/nodeQuery/NodeNamesQuery.js";
 
@@ -15,9 +15,6 @@ export default async function pathGenerationService(source, destination) {
     const destinationRows = await getNodeById({ location: destination });
     const sourceId = sourceRows?.id;
     const destinationId = destinationRows?.id;
-
-    // console.log("source rows:", sourceRows);
-    // console.log("destination rows:", destinationRows);
 
     if (!sourceId || !destinationId) {
         throw new Error(`Invalid source or destination: '${source}' -> '${destination}'`);
@@ -34,45 +31,45 @@ export default async function pathGenerationService(source, destination) {
 
     const builtGraph = graphBuilder(nodes);
 
-
-
     if (!builtGraph[sourceId]) {
-        throw new Error(`Source node ${sourceId} not in graph`);
+        throw new Error("Source node not in graph");
     }
 
     if (!builtGraph[destinationId]) {
-        throw new Error(`Destination node ${destinationId} not in graph`);
+        throw new Error("Destination node not in graph");
     }
-    const result = dijkstra(builtGraph, sourceId, destinationId);
+    
+    const paths = yenKShortestPaths(builtGraph, sourceId, destinationId, 3);
+
+    if (paths.length === 0) {
+        throw new Error("No path found from source to destination");
+    }
 
     const nodeDetailsById = new Map(
         allNodes.map(node => [node.id, node])
     );
 
-    const detailedPath = result.path.map(nodeObj => {
-        const details = nodeDetailsById.get(nodeObj.id);
+    const detailedPaths = paths.map((path, index) => {
+        const detailedPath = path.map(nodeObj => {
+            const details = nodeDetailsById.get(nodeObj.id);
+
+            return {
+                id: nodeObj.id,
+                dist: nodeObj.dist,
+                name: details?.node_name ?? "Unknown",
+                type: details?.type ?? "N/A"
+            };
+        });
 
         return {
-            id: nodeObj.id,
-            dist: nodeObj.dist,
-            name: details?.node_name ?? "Unknown",
-            type: details?.type ?? "N/A"
+            label: `Route ${index + 1}${index === 0 ? " (Shortest)" : " (Alternative)"}`,
+            dist: path[path.length - 1]?.dist ?? 0,
+            path: detailedPath
         };
     });
 
-    if (result.path.length === 0) {
-        throw new Error("No path found from source to destination");
-    }
-    // Optional: clean the graph if needed
-    // Debugging output  -- remove in production --
-    // console.log("Shortest Path:", result.path);
-    // console.log("Distances:", result.dist);
-    // console.log("Graph:", builtGraph);
-
-
     return {
-        // graph: builtGraph, //optional: return the graph for debugging or visualization
-        // distances: result.dist, //optional: return distances for all nodes
-        path: detailedPath //return the cleaned path with node ids and distances
-    }
+        path: detailedPaths[0].path, // return shortest path for backward compatibility
+        paths: detailedPaths
+    };
 }

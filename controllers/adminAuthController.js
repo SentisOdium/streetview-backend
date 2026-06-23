@@ -55,6 +55,13 @@ export const verifySession = async (req, res) => {
 
 export const register = async (req, res) => {
   try {
+    if (req.admin?.role !== 'super_admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden. Only super administrators can register new accounts.'
+      });
+    }
+
     const validationResult = await adminRegisterSchema.safeParseAsync(req.body);
     
     if (!validationResult.success) {

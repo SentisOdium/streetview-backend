@@ -65,6 +65,7 @@ export const loginAdmin = async (email, password, ipAddress) => {
   const tokenPayload = {
     adminId: admin.admin_id,
     email: admin.email,
+    role: admin.role,
   };
   const token = generateToken(tokenPayload);
 
@@ -77,11 +78,11 @@ export const loginAdmin = async (email, password, ipAddress) => {
     [admin.admin_id, ipAddress]
   );
 
-  return { token, admin: { id: admin.admin_id, email: admin.email, name: `${admin.first_name} ${admin.last_name}` } };
+  return { token, admin: { id: admin.admin_id, email: admin.email, name: `${admin.first_name} ${admin.last_name}`, role: admin.role } };
 };
 
 export const getAdminProfile = async (adminId) => {
-  const [rows] = await pool.query('SELECT admin_id, email, first_name, middle_initial, last_name, last_login, created_at FROM admins WHERE admin_id = ?', [adminId]);
+  const [rows] = await pool.query('SELECT admin_id, email, first_name, middle_initial, last_name, last_login, created_at, role FROM admins WHERE admin_id = ?', [adminId]);
   return rows[0];
 };
 
