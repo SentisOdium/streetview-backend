@@ -1,27 +1,4 @@
 import pool from "../../config/db.js";
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const AUDIT_FILE = path.join(__dirname, "../../data/audit-logs.json");
-
-async function ensureAuditFile() {
-  try {
-    await fs.access(AUDIT_FILE);
-  } catch {
-    await fs.mkdir(path.dirname(AUDIT_FILE), { recursive: true });
-    await fs.writeFile(AUDIT_FILE, "[]", "utf-8");
-  }
-}
-
-async function writeFileLog(entry) {
-  await ensureAuditFile();
-  const raw = await fs.readFile(AUDIT_FILE, "utf-8");
-  const logs = JSON.parse(raw);
-  logs.unshift({ ...entry, id: Date.now(), created_at: new Date().toISOString() });
-  await fs.writeFile(AUDIT_FILE, JSON.stringify(logs.slice(0, 500), null, 2), "utf-8");
-}
 
 export async function logAudit({
   action,
@@ -32,16 +9,6 @@ export async function logAudit({
   oldValue = null,
   newValue = null,
 }) {
-  const entry = {
-    action,
-    entity_type: entityType,
-    entity_id: entityId,
-    location_name: locationName,
-    admin_user: adminUser,
-    old_value: oldValue,
-    new_value: newValue,
-  };
-
   try {
     await pool.query(
       `INSERT INTO audit_log (action, entity_type, entity_id, location_name, admin_user, old_value, new_value)
@@ -56,8 +23,8 @@ export async function logAudit({
         newValue ? JSON.stringify(newValue) : null,
       ]
     );
-  } catch {
-    await writeFileLog(entry);
+  } catch (err) {
+    console.error("Failed to insert MySQL audit log:", err.message);
   }
 }
 
@@ -92,13 +59,7 @@ export async function getAuditLogs({ limit = 50, offset = 0 } = {}) {
       total
     };
   } catch (err) {
-    console.error("Database query failed, falling back to file logs:", err.message);
-    await ensureAuditFile();
-    const raw = await fs.readFile(AUDIT_FILE, "utf-8");
-    const logs = JSON.parse(raw);
-    return {
-      logs: logs.slice(offset, offset + limit),
-      total: logs.length
-    };
+    console.error("Failed to fetch MySQL audit logs:", err.message);
+    throw err;
   }
 }

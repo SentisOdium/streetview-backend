@@ -3,7 +3,12 @@ export function adminAuth(req, res, next) {
   const expected = process.env.ADMIN_TOKEN;
 
   if (!expected) {
-    return next();
+    console.error("CRITICAL SECURITY ERROR: ADMIN_TOKEN environment variable is not configured. Access denied.");
+    return res.status(500).json({
+      success: false,
+      message: "Server authentication misconfigured. Denying access.",
+      data: null,
+    });
   }
 
   if (token !== expected) {

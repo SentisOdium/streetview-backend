@@ -13,6 +13,7 @@ export const authenticateAdmin = (req, res, next) => {
 
     const decoded = verifyToken(token);
     req.admin = decoded;
+    req.adminUser = decoded.email || "admin";
     
     next();
   } catch (error) {

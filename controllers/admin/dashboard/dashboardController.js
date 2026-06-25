@@ -1,10 +1,7 @@
 import { getDashboardStats } from "../../../database/adminQuery/AdminQuery.js";
+import { catchAsync } from "../../../middleware/catchAsync.js";
 
-export const dashboardController = async (req, res) => {
-  try {
-    const data = await getDashboardStats();
-    res.json({ success: true, message: "Dashboard stats", data });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message, data: null });
-  }
-};
+export const dashboardController = catchAsync(async (req, res) => {
+  const data = await getDashboardStats();
+  res.json({ success: true, message: "Dashboard stats", data });
+});

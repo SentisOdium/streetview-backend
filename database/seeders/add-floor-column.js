@@ -1,4 +1,4 @@
-import pool from '../config/db.js';
+import pool from '../../config/db.js';
 
 async function addFloorColumn() {
   try {
@@ -13,7 +13,7 @@ async function addFloorColumn() {
 
     // 2. Map existing coordinates based on nd.type
     console.log("Seeding existing coordinates floors based on node type...");
-    
+
     // Set floor = '2' for second floor nodes
     const [res2] = await pool.query(`
       UPDATE node_coordinates nc

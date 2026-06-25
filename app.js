@@ -7,7 +7,7 @@ import helmet from "helmet";
 import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
-import { publicApiLimiter, authLimiter } from "./middleware/rateLimiter.js";
+import { publicApiLimiter } from "./middleware/rateLimiter.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -38,21 +38,27 @@ app.use(cookieParser());
 app.use(helmet({ crossOriginResourcePolicy: false }));
 
 // Attach specific rate limiters BEFORE route logic
-app.use("/api/admin-auth", authLimiter, adminAuthRoutes);
+app.use("/api/admin-auth", adminAuthRoutes);
 app.use("/api/admin", adminRouter);
 app.use("/api", publicApiLimiter, hotspotRouter);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Global JSON Error Handler
 app.use((err, req, res, _next) => {
-  console.error("Unhandled error caught in Express handler:", err);
-  
+  const statusCode = err.statusCode || err.status || 500;
   const isProduction = process.env.NODE_ENV === "production";
-  const statusCode = err.status || err.statusCode || 500;
-  
+
+  if (statusCode === 500) {
+    console.error("CRITICAL UNHANDLED ERROR:", err);
+  } else {
+    console.warn(`[API Error ${statusCode}]:`, err.message);
+  }
+
   res.status(statusCode).json({
     success: false,
-    message: isProduction && statusCode === 500 ? "An internal server error occurred." : err.message,
+    message: isProduction && !err.isOperational && statusCode === 500
+      ? "An internal server error occurred."
+      : err.message,
     data: null,
     ...(isProduction ? {} : { stack: err.stack }),
   });

@@ -129,7 +129,6 @@ function detectCircularRoutes(edges) {
 }
 
 export async function validateBeforeSave(entityType, payload) {
-  const result = await validateNavigationGraph();
   const entityErrors = [];
 
   if (entityType === "hotspot") {
@@ -149,7 +148,7 @@ export async function validateBeforeSave(entityType, payload) {
 
   return {
     valid: entityErrors.length === 0,
-    errors: [...entityErrors, ...result.errors],
-    warnings: result.warnings,
+    errors: entityErrors,
+    warnings: [],
   };
 }

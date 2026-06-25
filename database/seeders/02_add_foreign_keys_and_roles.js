@@ -1,4 +1,4 @@
-import pool from '../config/db.js';
+import pool from '../../config/db.js';
 
 async function checkConstraintExists(tableName, constraintName) {
   const [rows] = await pool.query(`
@@ -57,7 +57,7 @@ async function runMigration() {
     // 4. Clean orphan records first to prevent foreign key errors during alter
     // (In case any dev DB has dirty records)
     console.log("Cleaning orphan records to ensure smooth foreign key attachment...");
-    
+
     // Clean node_details whose node_id doesn't exist in node
     const [orphDetails] = await pool.query("DELETE FROM node_details WHERE node_id NOT IN (SELECT id FROM node)");
     if (orphDetails.affectedRows > 0) console.log(`Cleared ${orphDetails.affectedRows} orphan node_details.`);

@@ -15,11 +15,12 @@ export const publicApiLimiter = rateLimit({
 // Rate limit administrator login attempts to prevent brute-force attacks
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 login attempts per window
+  max: 5, // Limit each IP to 5 failed login attempts per window
+  skipSuccessfulRequests: true, // Do not penalize valid administrators logging in
   standardHeaders: true,
   legacyHeaders: false,
   message: {
     success: false,
-    message: "Too many login attempts from this IP. Please try again after 15 minutes.",
+    message: "Too many failed login attempts from this IP. Please try again after a few minutes.",
   },
 });
