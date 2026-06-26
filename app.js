@@ -2,6 +2,7 @@ import express from "express";
 import hotspotRouter from "./routes/nodeRoutes/HotspotRoute.js";
 import adminRouter from "./routes/admin/adminRouter.js";
 import adminAuthRoutes from "./routes/adminAuthRoutes.js";
+import usabilityRoutes from "./routes/usabilityRoutes.js";
 import cors from "cors";
 import helmet from "helmet";
 import path from "path";
@@ -40,6 +41,7 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 // Attach specific rate limiters BEFORE route logic
 app.use("/api/admin-auth", adminAuthRoutes);
 app.use("/api/admin", adminRouter);
+app.use("/api/usability", usabilityRoutes);
 app.use("/api", publicApiLimiter, hotspotRouter);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
