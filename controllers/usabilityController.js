@@ -8,27 +8,18 @@ export const startSession = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Missing session_uuid or version" });
     }
 
-    // Check if session already exists
+    // Use upsert to prevent race condition (e.g., from React Strict Mode double requests)
+    await pool.query(
+      "INSERT INTO usability_sessions (session_uuid, version) VALUES (?, ?) ON DUPLICATE KEY UPDATE version = VALUES(version)",
+      [session_uuid, version]
+    );
+
+    // Fetch the ID to return it, in case the frontend needs it later
     const [existing] = await pool.query(
       "SELECT id FROM usability_sessions WHERE session_uuid = ?",
       [session_uuid]
     );
-
-    let sessionId;
-    if (existing.length > 0) {
-      sessionId = existing[0].id;
-      // Update version if needed
-      await pool.query(
-        "UPDATE usability_sessions SET version = ? WHERE id = ?",
-        [version, sessionId]
-      );
-    } else {
-      const [result] = await pool.query(
-        "INSERT INTO usability_sessions (session_uuid, version) VALUES (?, ?)",
-        [session_uuid, version]
-      );
-      sessionId = result.insertId;
-    }
+    const sessionId = existing[0].id;
 
     res.status(200).json({
       success: true,
@@ -98,6 +89,64 @@ export const logTask = async (req, res, next) => {
       success: true,
       message: "Task logged successfully",
       data: { id: result.insertId }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logTasksBulk = async (req, res, next) => {
+  try {
+    const { session_uuid, tasks } = req.body;
+
+    if (!session_uuid || !Array.isArray(tasks) || tasks.length === 0) {
+      return res.status(400).json({ success: false, message: "Missing required fields or empty tasks array" });
+    }
+
+    // Lookup session_id
+    const [sessions] = await pool.query(
+      "SELECT id FROM usability_sessions WHERE session_uuid = ?",
+      [session_uuid]
+    );
+
+    if (sessions.length === 0) {
+      return res.status(404).json({ success: false, message: "Session not found" });
+    }
+
+    const sessionId = sessions[0].id;
+    const now = new Date();
+
+    // Prepare values for bulk insert
+    const values = tasks.map(task => {
+      const safeStatus = ['started', 'completed', 'skipped'].includes(task.status) ? task.status : 'started';
+      const completedAt = (safeStatus === 'completed' || safeStatus === 'skipped') ? now : null;
+      const durationMs = task.duration_ms || 0;
+      const startedAt = durationMs ? new Date(now.getTime() - durationMs) : now;
+
+      return [
+        sessionId,
+        task.task_number,
+        safeStatus,
+        startedAt,
+        completedAt,
+        durationMs,
+        task.interactions_count || 0,
+        task.used_search || false,
+        task.used_minimap || false
+      ];
+    });
+
+    const [result] = await pool.query(
+      `INSERT INTO usability_tasks_logs 
+        (session_id, task_number, status, started_at, completed_at, duration_ms, interactions_count, used_search, used_minimap) 
+       VALUES ?`,
+      [values]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: `${result.affectedRows} tasks logged successfully`,
+      data: { affectedRows: result.affectedRows }
     });
   } catch (error) {
     next(error);

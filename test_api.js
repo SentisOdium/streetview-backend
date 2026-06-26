@@ -11,21 +11,33 @@ async function runTest() {
     });
     console.log("Session response:", res1.status, await res1.text());
 
-    console.log("Logging task...");
-    const res2 = await fetch('http://localhost:5000/api/usability/task', {
+    console.log("Logging tasks in bulk...");
+    const res2 = await fetch('http://localhost:5000/api/usability/tasks/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         session_uuid: 'test-uuid-1234',
-        task_number: 1,
-        status: 'completed',
-        duration_ms: 1000,
-        interactions_count: 5,
-        used_search: true,
-        used_minimap: false
+        tasks: [
+          {
+            task_number: 1,
+            status: 'completed',
+            duration_ms: 1000,
+            interactions_count: 5,
+            used_search: true,
+            used_minimap: false
+          },
+          {
+            task_number: 2,
+            status: 'skipped',
+            duration_ms: 500,
+            interactions_count: 2,
+            used_search: false,
+            used_minimap: true
+          }
+        ]
       })
     });
-    console.log("Task response:", res2.status, await res2.text());
+    console.log("Bulk Task response:", res2.status, await res2.text());
   } catch (error) {
     console.error("Error:", error);
   }
