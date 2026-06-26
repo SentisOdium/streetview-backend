@@ -152,3 +152,50 @@ export const logTasksBulk = async (req, res, next) => {
     next(error);
   }
 };
+
+export const logActionsBulk = async (req, res, next) => {
+  try {
+    const { session_uuid, actions } = req.body;
+
+    if (!session_uuid || !Array.isArray(actions) || actions.length === 0) {
+      return res.status(400).json({ success: false, message: "Missing required fields or empty actions array" });
+    }
+
+    // Lookup session_id
+    const [sessions] = await pool.query(
+      "SELECT id FROM usability_sessions WHERE session_uuid = ?",
+      [session_uuid]
+    );
+
+    if (sessions.length === 0) {
+      return res.status(404).json({ success: false, message: "Session not found" });
+    }
+
+    const sessionId = sessions[0].id;
+
+    // Prepare values for bulk insert
+    const values = actions.map(action => [
+      sessionId,
+      action.task_number,
+      action.event_type,
+      action.event_target,
+      action.is_allowed !== undefined ? action.is_allowed : true
+    ]);
+
+    const [result] = await pool.query(
+      `INSERT INTO usability_action_logs 
+        (session_id, task_number, event_type, event_target, is_allowed) 
+       VALUES ?`,
+      [values]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: `${result.affectedRows} actions logged successfully`,
+      data: { affectedRows: result.affectedRows }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
