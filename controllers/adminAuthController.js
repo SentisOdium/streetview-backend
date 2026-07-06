@@ -1,5 +1,5 @@
 import * as authService from '../services/authService.js';
-import { adminRegisterSchema } from '../schema/adminValidation.js';
+import { adminRegisterSchema, adminUpdateSchema } from '../schema/adminValidation.js';
 
 const cookieConfig = {
   httpOnly: true,
@@ -69,9 +69,9 @@ export const register = async (req, res) => {
       return res.status(400).json({ success: false, message: errorMessages });
     }
 
-    const { email, password, firstName, middleInitial, lastName } = validationResult.data;
+    const { email, password, firstName, middleInitial, lastName, streetAddress, barangay, district, city, province, postalCode, role } = validationResult.data;
     
-    await authService.registerAdmin(email, password, firstName, middleInitial, lastName);
+    await authService.registerAdmin(email, password, firstName, middleInitial, lastName, streetAddress, barangay, district, city, province, postalCode, role);
 
     res.status(201).json({
       success: true,
@@ -95,8 +95,147 @@ export const getAdmins = async (req, res) => {
       data: admins
     });
   } catch (error) {
-    console.error('Failed to get admins:', error);
     res.status(500).json({ success: false, message: 'Internal server error.' });
   }
 };
+
+export const deleteAdmin = async (req, res) => {
+  try {
+    // Only super_admin can soft delete
+    if (req.admin?.role !== 'super_admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden. Only super administrators can delete admin accounts.'
+      });
+    }
+
+    const targetAdminId = parseInt(req.params.id, 10);
+    const currentAdminId = req.admin.adminId;
+
+    // Prevent self deletion
+    if (targetAdminId === currentAdminId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Cannot delete your own account.'
+      });
+    }
+
+    await authService.softDeleteAdmin(targetAdminId, req.adminUser || req.admin.email);
+
+    res.status(200).json({
+      success: true,
+      message: 'Admin account deleted successfully'
+    });
+  } catch (error) {
+    if (error.message === 'Admin account not found or already deleted' || error.message === 'Cannot delete a fellow super administrator') {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    console.error('Delete admin error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+};
+
+export const updateAdminRole = async (req, res) => {
+  try {
+    if (req.admin?.role !== 'super_admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden. Only super administrators can modify roles.'
+      });
+    }
+
+    const targetAdminId = parseInt(req.params.id, 10);
+    const { role } = req.body;
+
+    if (!['admin', 'super_admin'].includes(role)) {
+      return res.status(400).json({ success: false, message: 'Invalid role specified.' });
+    }
+
+    await authService.changeAdminRole(targetAdminId, role, req.adminUser || req.admin.email);
+
+    res.status(200).json({
+      success: true,
+      message: `Admin role updated to ${role} successfully`
+    });
+  } catch (error) {
+    if (error.message === 'Admin account not found or deleted') {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    console.error('Update role error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+};
+
+export const getAdminDetails = async (req, res) => {
+  try {
+    const targetAdminId = parseInt(req.params.id, 10);
+    const requesterId = req.admin.adminId;
+    const requesterRole = req.admin.role;
+
+    // Check authorization: only super_admin or the admin themselves can view full details
+    if (requesterRole !== 'super_admin' && requesterId !== targetAdminId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden. You do not have permission to view this profile.'
+      });
+    }
+
+    const admin = await authService.getAdminById(targetAdminId);
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'Admin not found.' });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: admin
+    });
+  } catch (error) {
+    console.error('Get admin details error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+};
+
+export const updateAdmin = async (req, res) => {
+  try {
+    const targetAdminId = parseInt(req.params.id, 10);
+    const requesterId = req.admin.adminId;
+    const requesterRole = req.admin.role;
+
+    // Check authorization: only super_admin or the admin themselves can edit
+    if (requesterRole !== 'super_admin' && requesterId !== targetAdminId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden. You do not have permission to edit this profile.'
+      });
+    }
+
+    // Validate body
+    const validationResult = await adminUpdateSchema.safeParseAsync({
+      ...req.body,
+      adminId: targetAdminId
+    });
+
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.issues.map(err => err.message).join('. ');
+      return res.status(400).json({ success: false, message: errorMessages });
+    }
+
+    // Admins cannot change their own role (only super_admin can do that, but let's restrict it to requesterRole === 'super_admin')
+    const updateData = { ...validationResult.data };
+    if (requesterRole !== 'super_admin') {
+      delete updateData.role; // Prevent role escalation
+    }
+
+    await authService.updateAdminDetails(targetAdminId, updateData, req.adminUser || req.admin.email);
+
+    res.status(200).json({
+      success: true,
+      message: 'Admin profile updated successfully'
+    });
+  } catch (error) {
+    console.error('Update admin error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+};
+
 

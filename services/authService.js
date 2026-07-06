@@ -15,7 +15,7 @@ function maskEmail(email) {
 
 export const getAllAdmins = async () => {
   const [rows] = await pool.query(
-    'SELECT admin_id, email, first_name, last_name, created_at, last_login FROM admins ORDER BY created_at DESC'
+    'SELECT admin_id, email, first_name, last_name, role, created_at, last_login, street_address, barangay, district, city, province, postal_code FROM admins WHERE deleted_at IS NULL ORDER BY created_at DESC'
   );
   
   return rows.map(admin => {
@@ -25,8 +25,15 @@ export const getAllAdmins = async () => {
       last_name: admin.last_name,
       first_name_initial: firstInitial,
       email: maskEmail(admin.email),
+      role: admin.role,
       created_at: admin.created_at,
-      last_login: admin.last_login
+      last_login: admin.last_login,
+      street_address: admin.street_address,
+      barangay: admin.barangay,
+      district: admin.district,
+      city: admin.city,
+      province: admin.province,
+      postal_code: admin.postal_code
     };
   });
 };
@@ -37,8 +44,8 @@ export const loginAdmin = async (email, password, ipAddress) => {
     throw new Error('Email and password are required');
   }
 
-  // Find admin by email
-  const [rows] = await pool.query('SELECT * FROM admins WHERE email = ?', [email]);
+  // Find admin by email (active accounts only)
+  const [rows] = await pool.query('SELECT * FROM admins WHERE email = ? AND deleted_at IS NULL', [email]);
   const admin = rows[0];
 
   if (!admin) {
@@ -86,9 +93,9 @@ export const getAdminProfile = async (adminId) => {
   return rows[0];
 };
 
-export const registerAdmin = async (email, password, firstName, middleInitial, lastName) => {
-  if (!email || !password || !firstName || !lastName) {
-    throw new Error('Email, password, first name, and last name are required');
+export const registerAdmin = async (email, password, firstName, middleInitial, lastName, streetAddress, barangay, district, city, province, postalCode, role) => {
+  if (!email || !password || !firstName || !lastName || !streetAddress || !barangay || !city || !province || !postalCode) {
+    throw new Error('Email, password, first name, last name, and complete address details are required');
   }
 
   const [existing] = await pool.query('SELECT email FROM admins WHERE email = ?', [email]);
@@ -100,8 +107,8 @@ export const registerAdmin = async (email, password, firstName, middleInitial, l
   const passwordHash = await bcrypt.hash(password, saltRounds);
 
   const [result] = await pool.query(
-    'INSERT INTO admins (email, password_hash, first_name, middle_initial, last_name) VALUES (?, ?, ?, ?, ?)',
-    [email, passwordHash, firstName, middleInitial || null, lastName]
+    'INSERT INTO admins (email, password_hash, first_name, middle_initial, last_name, street_address, barangay, district, city, province, postal_code, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [email, passwordHash, firstName, middleInitial || null, lastName, streetAddress, barangay, district || null, city, province, postalCode, role || 'admin']
   );
 
   try {
@@ -118,3 +125,108 @@ export const registerAdmin = async (email, password, firstName, middleInitial, l
 
   return result.insertId;
 };
+
+export const softDeleteAdmin = async (targetAdminId, performerAdminEmail) => {
+  // Check if target admin exists
+  const [rows] = await pool.query('SELECT admin_id, email, role FROM admins WHERE admin_id = ? AND deleted_at IS NULL', [targetAdminId]);
+  const targetAdmin = rows[0];
+  if (!targetAdmin) {
+    throw new Error('Admin account not found or already deleted');
+  }
+
+  // Double check that they are not deleting a superadmin
+  if (targetAdmin.role === 'super_admin') {
+    throw new Error('Cannot delete a fellow super administrator');
+  }
+
+  // Soft delete
+  await pool.query('UPDATE admins SET deleted_at = NOW() WHERE admin_id = ?', [targetAdminId]);
+
+  // Log audit
+  try {
+    await logAudit({
+      action: 'DELETE',
+      entityType: 'admin',
+      entityId: targetAdminId,
+      locationName: `Admin Account Deletion: ${targetAdmin.email}`,
+      adminUser: performerAdminEmail
+    });
+  } catch (err) {
+    console.error('Failed to log admin deletion audit log:', err);
+  }
+  return true;
+};
+
+export const changeAdminRole = async (targetAdminId, newRole, performerAdminEmail) => {
+  const [rows] = await pool.query('SELECT admin_id, email, role FROM admins WHERE admin_id = ? AND deleted_at IS NULL', [targetAdminId]);
+  const targetAdmin = rows[0];
+  if (!targetAdmin) {
+    throw new Error('Admin account not found or deleted');
+  }
+
+  await pool.query('UPDATE admins SET role = ? WHERE admin_id = ?', [newRole, targetAdminId]);
+
+  try {
+    await logAudit({
+      action: 'UPDATE',
+      entityType: 'admin',
+      entityId: targetAdminId,
+      locationName: `Admin Role Elevation: ${targetAdmin.email} to ${newRole}`,
+      adminUser: performerAdminEmail
+    });
+  } catch (err) {
+    console.error('Failed to log admin role change audit log:', err);
+  }
+  return true;
+};
+
+export const getAdminById = async (adminId) => {
+  const [rows] = await pool.query(
+    'SELECT admin_id, email, first_name, middle_initial, last_name, street_address, barangay, district, city, province, postal_code, role, created_at, last_login FROM admins WHERE admin_id = ? AND deleted_at IS NULL',
+    [adminId]
+  );
+  return rows[0];
+};
+
+export const updateAdminDetails = async (adminId, updateData, performerAdminEmail) => {
+  const { email, password, firstName, middleInitial, lastName, streetAddress, barangay, district, city, province, postalCode, role } = updateData;
+
+  let query = 'UPDATE admins SET email = ?, first_name = ?, middle_initial = ?, last_name = ?, street_address = ?, barangay = ?, district = ?, city = ?, province = ?, postal_code = ?';
+  const params = [email, firstName, middleInitial || null, lastName, streetAddress, barangay, district || null, city, province, postalCode];
+
+  if (password) {
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+    query += ', password_hash = ?';
+    params.push(passwordHash);
+  }
+
+  if (role) {
+    query += ', role = ?';
+    params.push(role);
+  }
+
+  query += ' WHERE admin_id = ? AND deleted_at IS NULL';
+  params.push(adminId);
+
+  const [result] = await pool.query(query, params);
+
+  if (result.affectedRows === 0) {
+    throw new Error('Admin account not found or deleted');
+  }
+
+  try {
+    await logAudit({
+      action: 'UPDATE',
+      entityType: 'admin',
+      entityId: adminId,
+      locationName: `Admin Account Update: ${email}`,
+      adminUser: performerAdminEmail
+    });
+  } catch (err) {
+    console.error('Failed to log admin update audit log:', err);
+  }
+
+  return true;
+};
+

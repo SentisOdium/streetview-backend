@@ -25,6 +25,7 @@ export const routeTestController = async (req, res) => {
       message: "Route test result",
       data: {
         path: pathData?.path ?? [],
+        paths: pathData?.paths ?? [],
         routeLength: pathData?.path?.length ?? 0,
         transitions: Math.max(0, (pathData?.path?.length ?? 1) - 1),
         missingLinks: validation.errors.filter((e) => e.type === "missing_destination"),

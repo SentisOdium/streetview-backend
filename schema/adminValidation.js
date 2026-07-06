@@ -46,6 +46,13 @@ export const adminRegisterSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   middleInitial: z.string().max(10, "Middle initial must be at most 10 characters").optional().or(z.literal("")),
+  streetAddress: z.string().min(1, "Street address is required"),
+  barangay: z.string().min(1, "Barangay is required"),
+  district: z.string().max(100, "District name is too long").optional().or(z.literal("")),
+  city: z.string().min(1, "City/Municipality is required"),
+  province: z.string().min(1, "Province is required"),
+  postalCode: z.string().min(1, "Postal code is required"),
+  role: z.enum(["admin", "super_admin"]).default("admin"),
 }).superRefine(async (data, ctx) => {
   const { email, password } = data;
 
@@ -101,3 +108,84 @@ export const adminRegisterSchema = z.object({
     });
   }
 });
+
+export const adminUpdateSchema = z.object({
+  adminId: z.number().int(),
+  email: z.string().email("Invalid email format"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[@$!%*?&]/, "Password must contain at least one special character (@$!%*?&)")
+    .optional().or(z.literal("")),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  middleInitial: z.string().max(10, "Middle initial must be at most 10 characters").optional().or(z.literal("")),
+  streetAddress: z.string().min(1, "Street address is required"),
+  barangay: z.string().min(1, "Barangay is required"),
+  district: z.string().max(100, "District name is too long").optional().or(z.literal("")),
+  city: z.string().min(1, "City/Municipality is required"),
+  province: z.string().min(1, "Province is required"),
+  postalCode: z.string().min(1, "Postal code is required"),
+  role: z.enum(["admin", "super_admin"]).optional(),
+}).superRefine(async (data, ctx) => {
+  const { adminId, email, password } = data;
+
+  try {
+    // 1. Fetch existing admins except current one
+    const [existingAdmins] = await pool.query("SELECT admin_id, email, password_hash FROM admins WHERE admin_id != ? AND deleted_at IS NULL", [adminId]);
+    
+    // 2. Validate similar email addresses
+    const targetNormalized = normalizeEmail(email);
+    const [localNew] = email.toLowerCase().trim().split("@");
+
+    for (const admin of existingAdmins) {
+      const targetExistingNormalized = normalizeEmail(admin.email);
+      const [localExisting] = admin.email.toLowerCase().trim().split("@");
+
+      if (targetNormalized === targetExistingNormalized) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "An identical or alias email address is already registered.",
+          path: ["email"],
+        });
+        break;
+      }
+
+      if (getLevenshteinDistance(localNew, localExisting) <= 2) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "This email address is too similar to an existing administrator's email.",
+          path: ["email"],
+        });
+        break;
+      }
+    }
+
+    // 3. Validate password uniqueness against existing password hashes if password is provided
+    if (password) {
+      // Also get the current admin password_hash to check if they are reusing their own password, or if they want to reuse it that's fine?
+      // But let's check against other admins' passwords
+      for (const admin of existingAdmins) {
+        const isMatch = await bcrypt.compare(password, admin.password_hash);
+        if (isMatch) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "This password has already been used by another administrator. Please choose a different password.",
+            path: ["password"],
+          });
+          break;
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Database query failed during admin update validation:", error);
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Validation failed due to a server error.",
+      path: [],
+    });
+  }
+});
+

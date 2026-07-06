@@ -13,4 +13,17 @@ const pool = mysql.createPool({
     timezone: "Z"
 });
 
+// Self-healing database check: add deleted_at column to admins if it doesn't exist
+(async () => {
+  try {
+    const [columns] = await pool.query("SHOW COLUMNS FROM admins LIKE 'deleted_at'");
+    if (columns.length === 0) {
+      await pool.query("ALTER TABLE admins ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL");
+      console.log("Self-healing: Added 'deleted_at' column to 'admins' table.");
+    }
+  } catch (err) {
+    console.error("Self-healing database check failed:", err);
+  }
+})();
+
 export default pool;

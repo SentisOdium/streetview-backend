@@ -86,6 +86,7 @@ adminRouter.post("/hotspots/node/:nodeId", createHotspotController);
 adminRouter.put("/hotspots/:id", updateHotspotController);
 adminRouter.delete("/hotspots/:id", deleteHotspotController);
 
+adminRouter.get("/rooms", listRoomsController);
 adminRouter.get("/rooms/node/:nodeId", listRoomsController);
 adminRouter.post("/rooms/node/:nodeId", createRoomController);
 adminRouter.put("/rooms/:id", updateRoomController);
