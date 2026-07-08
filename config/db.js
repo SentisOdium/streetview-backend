@@ -9,7 +9,7 @@ const pool = mysql.createPool({
     password: process.env.MYSQL_AWS_PASSWORD,
     database: process.env.MYSQL_AWS_DATABASE,
     port: process.env.MYSQL_AWS_PORT,
-    connectionLimit: 25, // Adjust the connection limit as needed
+    connectionLimit: 50, // Adjust the connection limit as needed
     timezone: "Z"
 });
 
