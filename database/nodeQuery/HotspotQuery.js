@@ -11,6 +11,10 @@ export default async function getHotspotById(hostspotId) {
 
                     nh.id AS hotspot_record_id,
                     nh.direction,
+                    nh.yaw,
+                    nh.pitch,
+                    nh.marker_width,
+                    nh.marker_height,
 
                     nd2.node_id AS destination_node_id,
                     nd2.node_name AS target_name

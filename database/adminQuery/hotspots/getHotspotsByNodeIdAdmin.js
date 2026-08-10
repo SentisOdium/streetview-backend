@@ -8,6 +8,8 @@ export async function getHotspotsByNodeIdAdmin(nodeId) {
       nh.path_weight,
       nh.yaw,
       nh.pitch,
+      nh.marker_width,
+      nh.marker_height,
       nd2.node_id AS destination_id,
       nd2.node_name AS destination_name
     FROM node n

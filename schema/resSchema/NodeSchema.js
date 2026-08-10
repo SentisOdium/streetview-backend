@@ -16,6 +16,8 @@ export const hotspotSchema = (hotspotData) => ({
     hotspot_label: hotspotData.direction ?? hotspotData.target_name,
     yaw: hotspotData.yaw ?? null,
     pitch: hotspotData.pitch ?? null,
+    marker_width: hotspotData.marker_width ?? 35,
+    marker_height: hotspotData.marker_height ?? 55,
 });
 
 

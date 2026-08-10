@@ -1,5 +1,5 @@
 import * as authService from '../services/authService.js';
-import { adminRegisterSchema, adminUpdateSchema } from '../schema/adminValidation.js';
+import { adminRegisterSchema, adminUpdateSchema, adminResetPasswordSchema, superAdminResetPasswordSchema } from '../schema/adminValidation.js';
 
 const cookieConfig = {
   httpOnly: true,
@@ -238,4 +238,144 @@ export const updateAdmin = async (req, res) => {
   }
 };
 
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email address is required.' });
+    }
 
+    await authService.generateResetOtp(email);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset OTP has been sent to your email.'
+    });
+  } catch (error) {
+    if (error.message === 'Admin account with this email does not exist.') {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+    console.error('Forgot password error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+};
+
+export const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ success: false, message: 'Email and OTP code are required.' });
+    }
+
+    await authService.verifyResetOtp(email, otp);
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP verified successfully. You may now reset your password.'
+    });
+  } catch (error) {
+    if (
+      error.message.includes('No password reset request') || 
+      error.message.includes('expired') || 
+      error.message.includes('verified') || 
+      error.message.includes('attempts') || 
+      error.message.includes('Invalid OTP')
+    ) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    console.error('Verify OTP error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const validationResult = await adminResetPasswordSchema.safeParseAsync(req.body);
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.issues.map(err => err.message).join('. ');
+      return res.status(400).json({ success: false, message: errorMessages });
+    }
+
+    const { email, otp, password } = validationResult.data;
+
+    await authService.completePasswordReset(email, otp, password);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successful. You can now login with your new password.'
+    });
+  } catch (error) {
+    if (
+      error.message.includes('Invalid reset session') || 
+      error.message.includes('expired') || 
+      error.message.includes('verified') || 
+      error.message.includes('not found')
+    ) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    console.error('Complete reset password error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+};
+
+export const superAdminResetOtp = async (req, res) => {
+  try {
+    if (req.admin?.role !== 'super_admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden. Only super administrators can generate authorization OTPs.'
+      });
+    }
+
+    const superAdminEmail = req.admin.email;
+    await authService.generateResetOtp(superAdminEmail);
+
+    res.status(200).json({
+      success: true,
+      message: 'Authorization OTP has been sent to your super admin email.'
+    });
+  } catch (error) {
+    console.error('Super Admin reset OTP error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+};
+
+export const superAdminResetPassword = async (req, res) => {
+  try {
+    if (req.admin?.role !== 'super_admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden. Only super administrators can perform OTP resets.'
+      });
+    }
+
+    const validationResult = await superAdminResetPasswordSchema.safeParseAsync(req.body);
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.issues.map(err => err.message).join('. ');
+      return res.status(400).json({ success: false, message: errorMessages });
+    }
+
+    const { targetAdminId, otp, password } = validationResult.data;
+    const superAdminEmail = req.admin.email;
+
+    await authService.completeSuperAdminPasswordReset(superAdminEmail, otp, targetAdminId, password);
+
+    res.status(200).json({
+      success: true,
+      message: 'Administrator password reset successfully.'
+    });
+  } catch (error) {
+    if (
+      error.message.includes('No password reset request') || 
+      error.message.includes('expired') || 
+      error.message.includes('verified') || 
+      error.message.includes('attempts') || 
+      error.message.includes('Invalid OTP') ||
+      error.message.includes('not found')
+    ) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    console.error('Super Admin complete reset password error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+};

@@ -21,6 +21,21 @@ const pool = mysql.createPool({
       await pool.query("ALTER TABLE admins ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL");
       console.log("Self-healing: Added 'deleted_at' column to 'admins' table.");
     }
+
+    // Create admin_password_resets table if it doesn't exist
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS admin_password_resets (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        otp_code VARCHAR(255) NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        is_verified TINYINT(1) DEFAULT 0,
+        failed_attempts INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_email (email)
+      ) ENGINE=InnoDB
+    `);
+    console.log("Self-healing: Checked/created 'admin_password_resets' table.");
   } catch (err) {
     console.error("Self-healing database check failed:", err);
   }

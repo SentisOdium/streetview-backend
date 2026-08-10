@@ -1,7 +1,7 @@
 import pool from "../../../config/db.js";
 import { getNodeDetailsId } from "../utils/getNodeDetailsId.js";
 
-export async function createHotspotAdmin(sourceNodeId, { destination_id, hotspot_label, yaw, pitch, path_weight = 1 }) {
+export async function createHotspotAdmin(sourceNodeId, { destination_id, hotspot_label, yaw, pitch, path_weight = 1, marker_width = 35, marker_height = 55 }) {
   const sourceDetailsId = await getNodeDetailsId(sourceNodeId);
   if (!sourceDetailsId) throw new Error("Source location not found");
 
@@ -10,9 +10,9 @@ export async function createHotspotAdmin(sourceNodeId, { destination_id, hotspot
 
   try {
     const [result] = await pool.query(
-      `INSERT INTO node_hotspots (node_details_id, target_node_id, direction, path_weight, yaw, pitch)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [sourceDetailsId, targetDetailsId, hotspot_label, path_weight, yaw ?? null, pitch ?? null]
+      `INSERT INTO node_hotspots (node_details_id, target_node_id, direction, path_weight, yaw, pitch, marker_width, marker_height)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [sourceDetailsId, targetDetailsId, hotspot_label, path_weight, yaw ?? null, pitch ?? null, marker_width ?? 35, marker_height ?? 55]
     );
     return { id: result.insertId };
   } catch (err) {

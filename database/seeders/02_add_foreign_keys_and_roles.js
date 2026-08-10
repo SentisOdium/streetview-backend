@@ -24,6 +24,18 @@ async function runMigration() {
       console.log("Column 'role' already exists in 'admins' table.");
     }
 
+    // 1b. Add marker_width and marker_height columns to node_hotspots if they don't exist
+    const [mWCols] = await pool.query("SHOW COLUMNS FROM node_hotspots LIKE 'marker_width'");
+    if (mWCols.length === 0) {
+      await pool.query("ALTER TABLE node_hotspots ADD COLUMN marker_width FLOAT DEFAULT 35");
+      console.log("Column 'marker_width' added to 'node_hotspots' table.");
+    }
+    const [mHCols] = await pool.query("SHOW COLUMNS FROM node_hotspots LIKE 'marker_height'");
+    if (mHCols.length === 0) {
+      await pool.query("ALTER TABLE node_hotspots ADD COLUMN marker_height FLOAT DEFAULT 55");
+      console.log("Column 'marker_height' added to 'node_hotspots' table.");
+    }
+
     // 2. Promote admin@wayfinder.com to super_admin
     const [updateAdminRes] = await pool.query(
       "UPDATE admins SET role = 'super_admin' WHERE email = 'admin@wayfinder.com'"

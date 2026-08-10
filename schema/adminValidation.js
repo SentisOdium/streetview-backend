@@ -122,12 +122,12 @@ export const adminUpdateSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   middleInitial: z.string().max(10, "Middle initial must be at most 10 characters").optional().or(z.literal("")),
-  streetAddress: z.string().min(1, "Street address is required"),
-  barangay: z.string().min(1, "Barangay is required"),
+  streetAddress: z.string().min(1, "Street address is required").optional().or(z.literal("")),
+  barangay: z.string().min(1, "Barangay is required").optional().or(z.literal("")),
   district: z.string().max(100, "District name is too long").optional().or(z.literal("")),
-  city: z.string().min(1, "City/Municipality is required"),
-  province: z.string().min(1, "Province is required"),
-  postalCode: z.string().min(1, "Postal code is required"),
+  city: z.string().min(1, "City/Municipality is required").optional().or(z.literal("")),
+  province: z.string().min(1, "Province is required").optional().or(z.literal("")),
+  postalCode: z.string().min(1, "Postal code is required").optional().or(z.literal("")),
   role: z.enum(["admin", "super_admin"]).optional(),
 }).superRefine(async (data, ctx) => {
   const { adminId, email, password } = data;
@@ -189,3 +189,70 @@ export const adminUpdateSchema = z.object({
   }
 });
 
+export const adminResetPasswordSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  otp: z.string().length(6, "OTP must be exactly 6 digits"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[@$!%*?&]/, "Password must contain at least one special character (@$!%*?&)"),
+}).superRefine(async (data, ctx) => {
+  const { password } = data;
+  try {
+    const [existingAdmins] = await pool.query("SELECT password_hash FROM admins WHERE deleted_at IS NULL");
+    for (const admin of existingAdmins) {
+      const isMatch = await bcrypt.compare(password, admin.password_hash);
+      if (isMatch) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "This password has already been used by another administrator. Please choose a different password.",
+          path: ["password"],
+        });
+        break;
+      }
+    }
+  } catch (error) {
+    console.error("Database query failed during admin password reset validation:", error);
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Validation failed due to a server error.",
+      path: [],
+    });
+  }
+});
+
+export const superAdminResetPasswordSchema = z.object({
+  targetAdminId: z.number().int(),
+  otp: z.string().length(6, "OTP must be exactly 6 digits"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[@$!%*?&]/, "Password must contain at least one special character (@$!%*?&)"),
+}).superRefine(async (data, ctx) => {
+  const { password } = data;
+  try {
+    const [existingAdmins] = await pool.query("SELECT password_hash FROM admins WHERE deleted_at IS NULL");
+    for (const admin of existingAdmins) {
+      const isMatch = await bcrypt.compare(password, admin.password_hash);
+      if (isMatch) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "This password has already been used by another administrator. Please choose a different password.",
+          path: ["password"],
+        });
+        break;
+      }
+    }
+  } catch (error) {
+    console.error("Database query failed during super admin password reset validation:", error);
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Validation failed due to a server error.",
+      path: [],
+    });
+  }
+});

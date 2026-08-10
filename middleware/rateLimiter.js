@@ -24,3 +24,16 @@ export const authLimiter = rateLimit({
     message: "Too many failed login attempts from this IP. Please try again after a few minutes.",
   },
 });
+
+// Rate limit password reset requests (OTP generation and validation)
+export const passwordResetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many password reset requests from this IP. Please try again after 15 minutes.",
+  },
+});
+
